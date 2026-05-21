@@ -17,7 +17,9 @@ RUN pnpm run build
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY extensions ./extensions
+COPY prisma ./prisma
 RUN pnpm install --frozen-lockfile --prod
+RUN pnpm prisma generate
 
 FROM base AS runtime
 ENV NODE_ENV=production
