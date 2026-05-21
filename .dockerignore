@@ -1,3 +1,8 @@
 .cache
 build
 node_modules
+.git
+.shopify
+.react-router
+prisma/dev.sqlite
+*.md
