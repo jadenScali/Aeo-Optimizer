@@ -33,11 +33,6 @@ required = true
 name = "Description"
 type = "multi_line_text_field"
 
-[app_proxy]
-url = "https://example.com/proxy"
-subpath = "llms-txt"
-prefix = "a"
-
 [webhooks]
 api_version = "2026-07"
 
