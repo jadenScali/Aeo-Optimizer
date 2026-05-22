@@ -13,7 +13,5 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await db.session.deleteMany({ where: { shop } });
   }
 
-  await db.aiReferrerDailyStat.deleteMany({ where: { shop } });
-
   return new Response();
 };

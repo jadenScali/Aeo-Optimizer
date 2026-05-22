@@ -23,15 +23,15 @@ export default function Index() {
           Analyze your product descriptions and pages for:
           <br />
           <br />
-<ul style={{ margin: 0, paddingLeft: "1.5em" }}>
-  <li>Clarity and readability</li>
-  <li>Logical structure and organization</li>
-  <li>Search engine crawlability</li>
-  <li>Answer Engine Optimization (AEO) performance</li>
-</ul>
+          <ul style={{ margin: 0, paddingLeft: "1.5em" }}>
+            <li>Clarity and readability</li>
+            <li>Logical structure and organization</li>
+            <li>Search engine crawlability</li>
+            <li>Answer Engine Optimization (AEO) performance</li>
+          </ul>
           <br />
-
-Optimize your content to rank better in AI search results and improve discoverability.
+          Optimize your content to rank better in AI search results and improve
+          discoverability.
         </s-paragraph>
         <div
           style={{

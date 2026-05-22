@@ -424,9 +424,8 @@ export default function Generate() {
                   SEO references
                 </h3>
                 <s-paragraph>
-                  Linking to <s-text>robots.txt</s-text> and{" "}
-                  <s-text>sitemap.xml</s-text> is recommended — but only if you
-                  already have them set up for SEO. Leave these off otherwise.
+                  Link to robots.txt and{" "}
+                  sitemap.xml.
                 </s-paragraph>
               </s-stack>
               <s-stack direction="block" gap="base">
@@ -486,11 +485,10 @@ export default function Generate() {
             <s-paragraph>
               Review and edit the generated <s-text>llms.txt</s-text> below.
               When you publish, it becomes available at <s-text>/llms.txt</s-text>,
-              but AI platforms may or may not read it.
+              but AI platforms may currently ignore it.
             </s-paragraph>
 
           <s-text-area
-            label="llms.txt contents"
             name="content"
             rows={20}
             value={preview}
@@ -519,7 +517,6 @@ export default function Generate() {
           <s-stack direction="block" gap="large">
             <s-banner heading="llms.txt published" tone="success">
               Your <s-text>llms.txt</s-text> is now live on your storefront.
-              Adoption isn&apos;t guaranteed — treat it as an optional signal.
             </s-banner>
             {fetcher.data?.ok &&
             fetcher.data.intent === "publish" &&

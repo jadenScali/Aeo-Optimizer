@@ -62,7 +62,7 @@ module.exports = {
         "import/internal-regex": "^~/",
         "import/resolver": {
           node: {
-            extensions: [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".d.ts"],
+            extensions: [".ts", ".tsx"],
           },
           typescript: {
             alwaysTryTypes: true,

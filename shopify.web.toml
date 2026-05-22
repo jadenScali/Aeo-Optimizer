@@ -3,6 +3,5 @@ roles = ["frontend", "backend"]
 webhooks_path = "/webhooks/app/uninstalled"
 
 [commands]
-# Use pnpm (this repo); if generate fails with EPERM on Windows, stop dev servers then retry.
-predev = "pnpm exec prisma generate"
+predev = "npx prisma generate"
 dev = "npx prisma migrate deploy && npm exec react-router dev"
