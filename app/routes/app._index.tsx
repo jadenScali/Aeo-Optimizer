@@ -17,21 +17,20 @@ export default function Index() {
     <s-page heading="AEO Optimizer">
       <s-section>
         <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-          Content score
+          Store audit
         </h3>
         <s-paragraph>
-          Analyze your product descriptions and pages for:
+          Run Google Lighthouse on your live storefront to score:
           <br />
           <br />
           <ul style={{ margin: 0, paddingLeft: "1.5em" }}>
-            <li>Clarity and readability</li>
-            <li>Logical structure and organization</li>
-            <li>Search engine crawlability</li>
-            <li>Answer Engine Optimization (AEO) performance</li>
+            <li>Performance and load speed</li>
+            <li>Accessibility</li>
+            <li>Best practices</li>
+            <li>Search engine optimization (SEO)</li>
           </ul>
           <br />
-          Optimize your content to rank better in AI search results and improve
-          discoverability.
+          You get an overall score plus concrete feedback on what to improve.
         </s-paragraph>
         <div
           style={{
@@ -43,9 +42,9 @@ export default function Index() {
         >
           <s-stack direction="inline" gap="base">
             <s-button variant="primary" href="/app/crawlability?autorun=1">
-              Run score
+              Run tests
             </s-button>
-            <s-button href="/app/crawlability">View report</s-button>
+            <s-button href="/app/crawlability">Open store audit</s-button>
           </s-stack>
         </div>
       </s-section>
