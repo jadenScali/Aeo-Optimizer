@@ -4,7 +4,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useRevalidator } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { runLighthouse, type Strategy } from "../lighthouse.server";
@@ -34,10 +34,35 @@ async function fetchStoreUrl(admin: {
   return url;
 }
 
+/**
+ * Checks whether the storefront is password-protected by fetching it the
+ * same way Lighthouse will: as an anonymous visitor. Protected stores
+ * redirect anonymous requests to /password. Returns false when the check
+ * itself fails, so a flaky check never blocks the audit.
+ */
+async function isPasswordProtected(storeUrl: string): Promise<boolean> {
+  try {
+    const res = await fetch(storeUrl, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(10_000),
+    });
+    const location = res.headers.get("location") ?? "";
+    return res.status >= 300 && res.status < 400 && location.includes("/password");
+  } catch {
+    return false;
+  }
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const storeUrl = await fetchStoreUrl(admin);
-  return { storeUrl };
+  const passwordProtected = await isPasswordProtected(storeUrl);
+  const shopHandle = session.shop.replace(".myshopify.com", "");
+  return {
+    storeUrl,
+    passwordProtected,
+    preferencesUrl: `https://admin.shopify.com/store/${shopHandle}/online_store/preferences`,
+  };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -48,6 +73,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     const storeUrl = await fetchStoreUrl(admin);
+    if (await isPasswordProtected(storeUrl)) {
+      return {
+        ok: false as const,
+        error:
+          "Your storefront is password-protected, so Lighthouse would only score the password page. Temporarily disable the password in Online Store → Preferences, then use Check again.",
+      };
+    }
     const report = await runLighthouse(
       storeUrl,
       strategy,
@@ -91,10 +123,13 @@ function ScoreRing({ score, size = 104 }: { score: number; size?: number }) {
 }
 
 export default function Crawlability() {
-  const { storeUrl } = useLoaderData<typeof loader>();
+  const { storeUrl, passwordProtected, preferencesUrl } =
+    useLoaderData<typeof loader>();
   const [strategy, setStrategy] = useState<Strategy | "">("");
   const fetcher = useFetcher<typeof action>();
+  const revalidator = useRevalidator();
   const running = fetcher.state !== "idle";
+  const checking = revalidator.state !== "idle";
 
   const handleRun = () => {
     if (!strategy) return;
@@ -127,11 +162,35 @@ export default function Crawlability() {
             <s-option value="MOBILE">Mobile</s-option>
             <s-option value="DESKTOP">Desktop</s-option>
           </s-select>
+          {passwordProtected ? (
+            <s-banner heading="Your store is password-protected" tone="warning">
+              <s-stack direction="block" gap="base">
+                <s-paragraph>
+                  Lighthouse visits your storefront like an anonymous shopper,
+                  so right now it would only score your password page — not
+                  your real store. It cannot log in, so there is no point
+                  entering your storefront password here (and you should never
+                  share passwords with apps). To run a real audit, temporarily
+                  disable the storefront password under Online Store →
+                  Preferences, run the audit, then turn it back on.
+                </s-paragraph>
+                <s-stack direction="inline" gap="base">
+                  <s-button href={preferencesUrl} target="_blank">
+                    Open store preferences
+                  </s-button>
+                  <s-button
+                    onClick={() => revalidator.revalidate()}
+                    {...(checking ? { loading: true } : {})}
+                  >
+                    Check again
+                  </s-button>
+                </s-stack>
+              </s-stack>
+            </s-banner>
+          ) : null}
           {fetcher.data?.ok === false ? (
             <s-banner heading="Audit failed" tone="critical">
-              {fetcher.data.error} If your storefront is password-protected,
-              Lighthouse can only see the password page — remove the storefront
-              password and try again.
+              {fetcher.data.error}
             </s-banner>
           ) : null}
           <s-stack direction="inline" gap="base">
@@ -139,7 +198,9 @@ export default function Crawlability() {
               variant="primary"
               onClick={handleRun}
               {...(running ? { loading: true } : {})}
-              {...(!strategy && !running ? { disabled: true } : {})}
+              {...((!strategy || passwordProtected) && !running
+                ? { disabled: true }
+                : {})}
             >
               Run audit
             </s-button>
