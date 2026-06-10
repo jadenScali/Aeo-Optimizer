@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher, useLoaderData, useSearchParams } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { runLighthouse, type Strategy } from "../lighthouse.server";
@@ -92,27 +92,14 @@ function ScoreRing({ score, size = 104 }: { score: number; size?: number }) {
 
 export default function Crawlability() {
   const { storeUrl } = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
-  const [strategy, setStrategy] = useState<Strategy>("MOBILE");
+  const [strategy, setStrategy] = useState<Strategy | "">("");
   const fetcher = useFetcher<typeof action>();
   const running = fetcher.state !== "idle";
-  const autorunStarted = useRef(false);
 
   const handleRun = () => {
+    if (!strategy) return;
     fetcher.submit({ strategy }, { method: "POST" });
   };
-
-  useEffect(() => {
-    if (
-      searchParams.get("autorun") === "1" &&
-      !autorunStarted.current &&
-      fetcher.state === "idle" &&
-      !fetcher.data
-    ) {
-      autorunStarted.current = true;
-      fetcher.submit({ strategy: "MOBILE" }, { method: "POST" });
-    }
-  }, [searchParams, fetcher]);
 
   const report = fetcher.data?.ok ? fetcher.data.report : null;
 
@@ -129,6 +116,7 @@ export default function Crawlability() {
           <s-select
             label="Device to simulate"
             name="strategy"
+            placeholder="Select a device…"
             value={strategy}
             onChange={(event: { target?: { value?: string } | null } | Event) => {
               const target = (event as { target?: { value?: string } | null })
@@ -151,6 +139,7 @@ export default function Crawlability() {
               variant="primary"
               onClick={handleRun}
               {...(running ? { loading: true } : {})}
+              {...(!strategy && !running ? { disabled: true } : {})}
             >
               Run audit
             </s-button>

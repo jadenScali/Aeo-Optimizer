@@ -41,7 +41,7 @@ export default function Index() {
           }}
         >
           <s-stack direction="inline" gap="base">
-            <s-button variant="primary" href="/app/crawlability?autorun=1">
+            <s-button variant="primary" href="/app/crawlability">
               Run tests
             </s-button>
             <s-button href="/app/crawlability">Open store audit</s-button>
