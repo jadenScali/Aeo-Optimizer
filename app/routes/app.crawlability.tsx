@@ -167,12 +167,10 @@ export default function Crawlability() {
               <s-stack direction="block" gap="base">
                 <s-paragraph>
                   Lighthouse visits your storefront like an anonymous shopper,
-                  so right now it would only score your password page — not
-                  your real store. It cannot log in, so there is no point
-                  entering your storefront password here (and you should never
-                  share passwords with apps). To run a real audit, temporarily
-                  disable the storefront password under Online Store →
-                  Preferences, run the audit, then turn it back on.
+                  so right now it would only score your password page not
+                  your real store. To run a real audit, temporarily disable
+                  the storefront password under Online Store → Preferences,
+                  run the audit, then turn it back on.
                 </s-paragraph>
                 <s-stack direction="inline" gap="base">
                   <s-button href={preferencesUrl} target="_blank">
