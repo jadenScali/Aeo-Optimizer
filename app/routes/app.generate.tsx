@@ -381,17 +381,12 @@ export default function Generate() {
   return (
     <s-page heading="Generate llms.txt">
       {stage === "options" && (
-        <s-section>
-          <s-stack direction="block" gap="large-200">
-            <s-stack direction="block" gap="base">
-              <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-                What to include
-              </h3>
-              <s-paragraph>
-                Choose the storefront content you want to expose in your{" "}
-                <s-text>llms.txt</s-text>.
-              </s-paragraph>
-            </s-stack>
+        <s-section heading="What to include">
+          <s-stack direction="block" gap="large">
+            <s-paragraph>
+              Choose the storefront content you want to expose in your
+              llms.txt.
+            </s-paragraph>
             <s-stack direction="block" gap="base">
               <s-checkbox
                 name="includeCollections"
@@ -420,12 +415,9 @@ export default function Generate() {
 
             <s-stack direction="block" gap="large">
               <s-stack direction="block" gap="small">
-                <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-                  SEO references
-                </h3>
+                <s-heading>SEO references</s-heading>
                 <s-paragraph>
-                  Link to robots.txt and{" "}
-                  sitemap.xml.
+                  Link to robots.txt and sitemap.xml.
                 </s-paragraph>
               </s-stack>
               <s-stack direction="block" gap="base">
@@ -469,7 +461,7 @@ export default function Generate() {
       )}
 
       {stage === "preview" && (
-        <s-section>
+        <s-section heading="Preview llms.txt">
           <s-stack direction="block" gap="large">
             {fetcher.data?.ok &&
             fetcher.data.intent === "generate" &&
@@ -479,24 +471,22 @@ export default function Generate() {
                 {fetcher.data.pagesWarning}
               </s-banner>
             ) : null}
-            <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-              llms.txt
-            </h3>
             <s-paragraph>
-              Review and edit the generated <s-text>llms.txt</s-text> below.
-              When you publish, it becomes available at <s-text>/llms.txt</s-text>,
-              but AI platforms may currently ignore it.
+              Review and edit the generated llms.txt below. When you publish,
+              it becomes available at /llms.txt, but AI platforms may
+              currently ignore it.
             </s-paragraph>
 
-          <s-text-area
-            name="content"
-            rows={20}
-            value={preview}
-            onChange={(event: { target?: { value?: string } | null } | Event) => {
-              const target = (event as { target?: { value?: string } | null }).target;
-              setPreview(target?.value ?? "");
-            }}
-          />
+            <s-text-area
+              label="llms.txt content"
+              name="content"
+              rows={20}
+              value={preview}
+              onChange={(event: { target?: { value?: string } | null } | Event) => {
+                const target = (event as { target?: { value?: string } | null }).target;
+                setPreview(target?.value ?? "");
+              }}
+            />
 
             <s-stack direction="inline" gap="base">
               <s-button
@@ -516,7 +506,7 @@ export default function Generate() {
         <s-section heading="Published">
           <s-stack direction="block" gap="large">
             <s-banner heading="llms.txt published" tone="success">
-              Your <s-text>llms.txt</s-text> is now live on your storefront.
+              Your llms.txt is now live on your storefront.
             </s-banner>
             {fetcher.data?.ok &&
             fetcher.data.intent === "publish" &&
