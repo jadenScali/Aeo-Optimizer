@@ -65,23 +65,49 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
+function parseCustomUrl(input: string): URL | null {
+  for (const candidate of [input, `https://${input}`]) {
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === "http:" || url.protocol === "https:") return url;
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const strategy: Strategy =
     formData.get("strategy") === "DESKTOP" ? "DESKTOP" : "MOBILE";
+  const customUrlInput = formData.get("customUrl");
 
   try {
-    const storeUrl = await fetchStoreUrl(admin);
-    if (await isPasswordProtected(storeUrl)) {
-      return {
-        ok: false as const,
-        error:
-          "Your storefront is password-protected, so Lighthouse would only score the password page. Temporarily disable the password in Online Store → Preferences, then use Check again.",
-      };
+    let auditUrl: string;
+    if (typeof customUrlInput === "string" && customUrlInput.trim()) {
+      const parsed = parseCustomUrl(customUrlInput.trim());
+      if (!parsed) {
+        return {
+          ok: false as const,
+          error:
+            "The link you entered is not a valid URL. Enter a full link such as https://your-store.com.",
+        };
+      }
+      auditUrl = parsed.toString();
+    } else {
+      auditUrl = await fetchStoreUrl(admin);
+      if (await isPasswordProtected(auditUrl)) {
+        return {
+          ok: false as const,
+          error:
+            "Your storefront is password-protected, so Lighthouse would only score the password page. Temporarily disable the password in Online Store → Preferences, then use Check again — or enter a link Lighthouse can reach yourself.",
+        };
+      }
     }
     const report = await runLighthouse(
-      storeUrl,
+      auditUrl,
       strategy,
       // eslint-disable-next-line no-undef
       process.env.PSI_API_KEY,
@@ -126,14 +152,24 @@ export default function Crawlability() {
   const { storeUrl, passwordProtected, preferencesUrl } =
     useLoaderData<typeof loader>();
   const [strategy, setStrategy] = useState<Strategy | "">("");
+  const [showCustomUrl, setShowCustomUrl] = useState(false);
+  const [customUrl, setCustomUrl] = useState("");
   const fetcher = useFetcher<typeof action>();
   const revalidator = useRevalidator();
   const running = fetcher.state !== "idle";
   const checking = revalidator.state !== "idle";
 
+  const usingCustomUrl =
+    passwordProtected && showCustomUrl && customUrl.trim().length > 0;
+
   const handleRun = () => {
     if (!strategy) return;
-    fetcher.submit({ strategy }, { method: "POST" });
+    fetcher.submit(
+      usingCustomUrl
+        ? { strategy, customUrl: customUrl.trim() }
+        : { strategy },
+      { method: "POST" },
+    );
   };
 
   const report = fetcher.data?.ok ? fetcher.data.report : null;
@@ -170,7 +206,8 @@ export default function Crawlability() {
                   so right now it would only score your password page not
                   your real store. To run a real audit, temporarily disable
                   the storefront password under Online Store → Preferences,
-                  run the audit, then turn it back on.
+                  run the audit, then turn it back on — or enter a link
+                  Lighthouse can reach yourself.
                 </s-paragraph>
                 <s-stack direction="inline" gap="base">
                   <s-button href={preferencesUrl} target="_blank">
@@ -182,7 +219,27 @@ export default function Crawlability() {
                   >
                     Check again
                   </s-button>
+                  <s-button onClick={() => setShowCustomUrl(true)}>
+                    Enter link manually
+                  </s-button>
                 </s-stack>
+                {showCustomUrl ? (
+                  <s-text-field
+                    label="Link to audit"
+                    name="customUrl"
+                    placeholder="https://your-store.com"
+                    details="Paste a publicly reachable link to your store, such as a preview link that bypasses the password. The audit will run against this link instead."
+                    value={customUrl}
+                    onChange={(
+                      event: { target?: { value?: string } | null } | Event,
+                    ) => {
+                      const target = (
+                        event as { target?: { value?: string } | null }
+                      ).target;
+                      setCustomUrl(target?.value ?? "");
+                    }}
+                  />
+                ) : null}
               </s-stack>
             </s-banner>
           ) : null}
@@ -196,7 +253,8 @@ export default function Crawlability() {
               variant="primary"
               onClick={handleRun}
               {...(running ? { loading: true } : {})}
-              {...((!strategy || passwordProtected) && !running
+              {...((!strategy || (passwordProtected && !usingCustomUrl)) &&
+              !running
                 ? { disabled: true }
                 : {})}
             >
