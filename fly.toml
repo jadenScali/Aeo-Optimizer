@@ -10,7 +10,7 @@ primary_region = 'yyz'
 
 [env]
   PORT = '3000'
-  SCOPES = 'read_online_store_pages,write_metaobject_definitions,write_metaobjects,write_online_store_navigation,write_products'
+  SCOPES = 'read_products,write_online_store_navigation,read_online_store_pages'
   SHOPIFY_API_KEY = '4e864af5b017d5b476b962174d1a7c58'
   SHOPIFY_APP_URL = 'https://aeo-optimizer.fly.dev'
 
