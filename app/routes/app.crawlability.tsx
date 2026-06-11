@@ -54,15 +54,10 @@ async function isPasswordProtected(storeUrl: string): Promise<boolean> {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
   const storeUrl = await fetchStoreUrl(admin);
   const passwordProtected = await isPasswordProtected(storeUrl);
-  const shopHandle = session.shop.replace(".myshopify.com", "");
-  return {
-    storeUrl,
-    passwordProtected,
-    preferencesUrl: `https://admin.shopify.com/store/${shopHandle}/online_store/preferences`,
-  };
+  return { storeUrl, passwordProtected };
 };
 
 function parseCustomUrl(input: string): URL | null {
@@ -119,38 +114,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
-const scoreColor = (score: number) =>
-  score >= 90 ? "#108043" : score >= 50 ? "#b86e00" : "#d72c0d";
+const scoreTone = (score: number) =>
+  score >= 90 ? ("success" as const) : score >= 50 ? ("warning" as const) : ("critical" as const);
 
 const scoreLabel = (score: number) =>
   score >= 90 ? "Good" : score >= 50 ? "Needs improvement" : "Poor";
 
-function ScoreRing({ score, size = 104 }: { score: number; size?: number }) {
-  const color = scoreColor(score);
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        border: `6px solid ${color}`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: size / 3,
-        fontWeight: 700,
-        color,
-        background: "#fff",
-      }}
-    >
-      {score}
-    </div>
-  );
-}
-
 export default function Crawlability() {
-  const { storeUrl, passwordProtected, preferencesUrl } =
-    useLoaderData<typeof loader>();
+  const { storeUrl, passwordProtected } = useLoaderData<typeof loader>();
   const [strategy, setStrategy] = useState<Strategy | "">("");
   const [showCustomUrl, setShowCustomUrl] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
@@ -210,7 +181,7 @@ export default function Crawlability() {
                   Lighthouse can reach yourself.
                 </s-paragraph>
                 <s-stack direction="inline" gap="base">
-                  <s-button href={preferencesUrl} target="_blank">
+                  <s-button href="shopify:admin/online_store/preferences">
                     Open store preferences
                   </s-button>
                   <s-button
@@ -270,76 +241,53 @@ export default function Crawlability() {
       </s-section>
 
       {report ? (
-        <s-section>
+        <s-section heading="Results">
           <s-stack direction="block" gap="large">
-            <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-              Results
-            </h3>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 24,
-                flexWrap: "wrap",
-                border: "1px solid #e1e3e5",
-                borderRadius: 12,
-                padding: 16,
-                background: "#fff",
-              }}
-            >
-              <ScoreRing score={report.overallScore} />
-              <div>
-                <div style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                  Overall score: {scoreLabel(report.overallScore)}
-                </div>
-                <s-paragraph>
+            <s-box padding="base" border="base" borderRadius="base">
+              <s-stack direction="block" gap="small">
+                <s-stack direction="inline" gap="base" alignItems="center">
+                  <s-heading>
+                    Overall score: {report.overallScore}/100
+                  </s-heading>
+                  <s-badge tone={scoreTone(report.overallScore)}>
+                    {scoreLabel(report.overallScore)}
+                  </s-badge>
+                </s-stack>
+                <s-paragraph color="subdued">
                   Average of the Lighthouse category scores for{" "}
                   {report.finalUrl} (
                   {report.strategy === "MOBILE" ? "mobile" : "desktop"}).
                 </s-paragraph>
-              </div>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: 12,
-              }}
+              </s-stack>
+            </s-box>
+            <s-grid
+              gridTemplateColumns="repeat(auto-fit, minmax(140px, 1fr))"
+              gap="base"
             >
               {report.categories.map((category) => (
-                <div
+                <s-box
                   key={category.id}
-                  style={{
-                    border: "1px solid #e1e3e5",
-                    borderRadius: 12,
-                    padding: 16,
-                    background: "#fff",
-                    textAlign: "center",
-                  }}
+                  padding="base"
+                  border="base"
+                  borderRadius="base"
                 >
-                  <div
-                    style={{
-                      fontSize: "1.75rem",
-                      fontWeight: 700,
-                      color: scoreColor(category.score),
-                    }}
-                  >
-                    {category.score}
-                  </div>
-                  <div style={{ fontWeight: 600 }}>{category.title}</div>
-                </div>
+                  <s-stack direction="block" gap="small" alignItems="center">
+                    <s-heading>{category.score}</s-heading>
+                    <s-text type="strong">{category.title}</s-text>
+                    <s-badge tone={scoreTone(category.score)}>
+                      {scoreLabel(category.score)}
+                    </s-badge>
+                  </s-stack>
+                </s-box>
               ))}
-            </div>
+            </s-grid>
           </s-stack>
         </s-section>
       ) : null}
 
       {report ? (
-        <s-section>
+        <s-section heading="How to improve your store">
           <s-stack direction="block" gap="large">
-            <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700 }}>
-              How to improve your store
-            </h3>
             {report.feedback.length === 0 ? (
               <s-banner heading="Nothing to fix" tone="success">
                 Lighthouse found no failing audits on your storefront. Great
@@ -348,14 +296,11 @@ export default function Crawlability() {
             ) : (
               <s-stack direction="block" gap="base">
                 {report.feedback.map((item) => (
-                  <div
+                  <s-box
                     key={item.id}
-                    style={{
-                      border: "1px solid #e1e3e5",
-                      borderRadius: 12,
-                      padding: 16,
-                      background: "#fff",
-                    }}
+                    padding="base"
+                    border="base"
+                    borderRadius="base"
                   >
                     <s-stack direction="block" gap="small">
                       <s-stack direction="inline" gap="small">
@@ -368,13 +313,13 @@ export default function Crawlability() {
                           </s-badge>
                         ) : null}
                       </s-stack>
-                      <div style={{ fontWeight: 600 }}>
+                      <s-text type="strong">
                         {item.title}
                         {item.displayValue ? ` — ${item.displayValue}` : ""}
-                      </div>
+                      </s-text>
                       <s-paragraph>{item.description}</s-paragraph>
                     </s-stack>
-                  </div>
+                  </s-box>
                 ))}
               </s-stack>
             )}
