@@ -21,9 +21,9 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>AEO Optimizer</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          Make your Shopify store fast, discoverable, and ready for AI search.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
@@ -39,16 +39,18 @@ export default function App() {
         )}
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Store audit</strong>. Run Google Lighthouse on your live
+            storefront and get scores for performance, accessibility, best
+            practices, and SEO.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Actionable feedback</strong>. See the highest-impact issues
+            holding your store back, with concrete guidance on how to fix
+            them.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>llms.txt generator</strong>. Publish an llms.txt file so AI
+            systems can better understand and reference your store.
           </li>
         </ul>
       </div>
